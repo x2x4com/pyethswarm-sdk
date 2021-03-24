@@ -1,5 +1,7 @@
 # ETH Swarm Python SDK
 
+**!! This project is still under development !!**
+
 ## Usage
 
 ```python

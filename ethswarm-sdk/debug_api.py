@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # encoding: utf-8
-
+from urllib.parse import urlencode
 from .common import ClientBase, RetType, ApiError, Headers
 
 
@@ -68,14 +68,20 @@ class Client(ClientBase):
     def post_chequebook_deposit(self, amount: int):
         method = "POST"
         amount = amount * 10**16
-        path = "/chequebook/deposit"
-        return self.__call_request(method, path, data={"amount": amount})
+        query_params = urlencode({
+            "amount": amount
+        })
+        path = "/chequebook/deposit?%s" % query_params
+        return self.__call_request(method, path)
 
     def post_chequebook_withdraw(self, amount: int):
         method = "POST"
         amount = amount * 10**16
-        path = "/chequebook/withdraw"
-        return self.__call_request(method, path, data={"amount": amount})
+        query_params = urlencode({
+            "amount": amount
+        })
+        path = "/chequebook/withdraw?%s" % query_params
+        return self.__call_request(method, path)
 
     def get_chunks(self, chunk_address):
         method = "GET"

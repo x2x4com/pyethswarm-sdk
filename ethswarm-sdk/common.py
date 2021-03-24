@@ -27,7 +27,7 @@ class Headers(dict):
     def __init__(self, t: dict = {}):
         super().__init__()
         self.update({
-            "content_type": ContentType.FORM,
+            "content-type": ContentType.FORM,
             **t
         })
 
