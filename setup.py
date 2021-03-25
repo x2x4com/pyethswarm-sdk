@@ -4,8 +4,8 @@ with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name="ethswarm-sdk",
-    version="0.0.3",
+    name="pyethswarm",
+    version="0.0.2",
     author="x2x4",
     author_email="x2x4com@gmail.com",
     description="A simple sdk for ethswarm",
