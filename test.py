@@ -70,3 +70,14 @@ print(dc.list_all_uncashed())
 print('兑现所有支票，金额>1000')
 print(dc.cashout())
 
+print('查看支票余额')
+print(dc.get_chequebook_balance())
+
+print('提现100000')
+print(dc.do_chequebook_withdraw(100000))
+
+sleep(10)
+
+print('查看支票余额')
+print(dc.get_chequebook_balance())
+

@@ -107,7 +107,6 @@ class Client(ClientBase):
 
     def do_chequebook_deposit(self, amount: int):
         method = "POST"
-        amount = amount * 10**16
         query_params = urlencode({
             "amount": amount
         })
@@ -116,7 +115,10 @@ class Client(ClientBase):
 
     def do_chequebook_withdraw(self, amount: int):
         method = "POST"
-        amount = amount * 10**16
+        available_balance = self.get_chequebook_balance()['availableBalance']
+        if amount >= available_balance:
+            print("Insufficient balance")
+            return
         query_params = urlencode({
             "amount": amount
         })
@@ -233,3 +235,4 @@ class Client(ClientBase):
                 cashed_list.append((_peer, _cash_out))
 
         return cashed_list
+
