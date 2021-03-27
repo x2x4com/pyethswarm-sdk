@@ -3,6 +3,7 @@
 import requests
 from json import loads, JSONDecodeError
 
+
 class ApiError(Exception):
     def __init__(self, target, method, url, code, msg):
         self.target = target
@@ -26,6 +27,9 @@ class RetType(object):
 class ContentType(object):
     JSON = 'application/json'
     FORM = 'application/x-www-form-urlencoded'
+    XTAR = 'application/x-tar'
+    MULTIPART = 'multipart/form-data'
+    OCTETSTEAM = 'application/octet-stream'
 
 
 class Headers(dict):
@@ -54,7 +58,8 @@ class ClientBase(object):
                  data: dict = None,
                  json: dict = None,
                  headers: Headers = None,
-                 timeout: int = 30
+                 timeout: int = 30,
+                 **kwargs
                  ) -> RetType:
         url = self.url + path
         if headers is None:
@@ -62,9 +67,9 @@ class ClientBase(object):
         req = None
         try:
             if json:
-                req = requests.request(method, url, json=json, timeout=timeout, headers=headers)
+                req = requests.request(method, url, json=json, timeout=timeout, headers=headers, **kwargs)
             else:
-                req = requests.request(method, url, data=data, timeout=timeout, headers=headers)
+                req = requests.request(method, url, data=data, timeout=timeout, headers=headers, **kwargs)
         except Exception as e:
             return RetType(500, {}, str(e))
         ret = RetType(req.status_code, {}, '')

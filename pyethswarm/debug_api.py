@@ -2,6 +2,7 @@
 # encoding: utf-8
 from urllib.parse import urlencode
 from .common import ClientBase, RetType, ApiError, Headers, ContentType
+from .address import PeerAddress, ChunkAddress
 
 
 class Client(ClientBase):
@@ -28,12 +29,12 @@ class Client(ClientBase):
 
     def remove_peer(self, peer_address):
         method = "DELETE"
-        path = "/peers/%s" % peer_address
+        path = "/peers/%s" % PeerAddress(peer_address)
         return self.call_request(method, path)
 
     def connect_peer(self, peer_address):
         method = "POST"
-        path = "/connect/%s" % peer_address
+        path = "/connect/%s" % PeerAddress(peer_address)
         return self.call_request(method, path)
 
     def get_topology(self):
@@ -60,7 +61,7 @@ class Client(ClientBase):
         if address is None:
             path = "/balances"
         else:
-            path = "/balances/%s" % address
+            path = "/balances/%s" % PeerAddress(address)
         method = "GET"
         return self.call_request(method, path)
 
@@ -69,7 +70,7 @@ class Client(ClientBase):
         if address is None:
             path = "/consumed"
         else:
-            path = "/consumed/%s" % address
+            path = "/consumed/%s" % PeerAddress(address)
         return self.call_request(method, path)
 
     def get_chequebook_address(self):
@@ -84,12 +85,12 @@ class Client(ClientBase):
 
     def get_chequebook_cashout(self, peer_id):
         method = "GET"
-        path = "/chequebook/cashout/%s" % peer_id
+        path = "/chequebook/cashout/%s" % PeerAddress(peer_id)
         return self.call_request(method, path)
 
     def do_chequebook_cashout(self, peer_id, gas_price_gwei=1):
         method = "POST"
-        path = "/chequebook/cashout/%s" % peer_id
+        path = "/chequebook/cashout/%s" % PeerAddress(peer_id)
         # 官方的cashout脚本并没有使用这个头，需要测试确认
         headers = Headers({
             "gas-price": gas_price_gwei * 10**9,
@@ -102,7 +103,7 @@ class Client(ClientBase):
         if peer_id is None:
             path = "/chequebook/cheque"
         else:
-            path = "/chequebook/cheque/%s" % peer_id
+            path = "/chequebook/cheque/%s" % PeerAddress(peer_id)
         return self.call_request(method, path)
 
     def do_chequebook_deposit(self, amount: int):
@@ -127,12 +128,12 @@ class Client(ClientBase):
 
     def get_chunks(self, chunk_address):
         method = "GET"
-        path = "/chunks/%s" % chunk_address
+        path = "/chunks/%s" % ChunkAddress(chunk_address)
         return self.call_request(method, path)
 
     def delete_chunks(self, chunk_address):
         method = "DELETE"
-        path = "/chunks/%s" % chunk_address
+        path = "/chunks/%s" % ChunkAddress(chunk_address)
         return self.call_request(method, path)
 
     def get_health(self):
@@ -150,7 +151,7 @@ class Client(ClientBase):
         if peer_address is None:
             path = "/settlements"
         else:
-            path = "/settlements/%s" % peer_address
+            path = "/settlements/%s" % PeerAddress(peer_address)
         return self.call_request(method, path)
 
     def get_tags(self, uid: int):
@@ -158,7 +159,7 @@ class Client(ClientBase):
         path = "/tags/%s" % uid
         return self.call_request(method, path)
 
-    def uncashed_amount(self, peer: str) -> int:
+    def uncashed_amount(self, peer: PeerAddress) -> int:
         """
         count uncashed amount
 
@@ -225,7 +226,7 @@ class Client(ClientBase):
         if peer is None:
             peers = self.all_cheque_peers()
         else:
-            peers = [peer]
+            peers = [PeerAddress(peer)]
 
         cashed_list = list()
         for _peer in peers:

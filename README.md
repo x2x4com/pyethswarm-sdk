@@ -20,3 +20,4 @@ print(debug_client.cashout())
 api_client = api.Client()
 ```
 
+[Book Of Swarm](https://gateway.ethswarm.org/bzz/latest.bookofswarm.eth/)
