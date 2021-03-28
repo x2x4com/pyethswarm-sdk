@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 # encoding: utf-8
 from urllib.parse import urlencode
-from .common import ClientBase, RetType, ApiError, Headers, ContentType
-from .address import ChunkAddress, ContentAddress, PeerAddress
+from .common import ClientBase, Headers, ContentType
+from .address import *
+from time import time
 
 
 class Client(ClientBase):
@@ -12,7 +13,7 @@ class Client(ClientBase):
         super().__init__(url, self.__version)
         self.is_raise = is_raise
 
-    def post_bytes(self, swarm_tag: int, swarm_pin: bool, swarm_encrypt: bool):
+    def create_bytes(self, swarm_tag: int, swarm_pin: bool, swarm_encrypt: bool):
         method = "POST"
         path = "/bytes"
         headers = Headers({
@@ -34,19 +35,19 @@ class Client(ClientBase):
         path = "/chunks/%s" % ChunkAddress(reference)
         return self.call_request(method, path)
 
-    def post_chunks(self, string_bin: bytes, swarm_tag: int, swarm_pin: bool):
+    def create_chunks(self, string_bin: bytes, swarm_tag: int, swarm_pin: bool):
         method = "POST"
         path = "/chunks"
         headers = Headers({
             "swarm-tag": swarm_tag,
             "swarm-pin": swarm_pin
         })
-        headers['content_type'] = ContentType.OCTETSTEAM
+        headers['content-type'] = ContentType.OCTETSTEAM
         return self.call_request(method, path, headers=headers, data=string_bin)
 
     def get_files(self, reference: str):
         method = "GET"
-        path = "/files/%s" % ChunkAddress(reference)
+        path = "/files/%s" % ContentAddress(reference)
         return self.call_request(method, path)
 
     def upload_files(self, file_name: str, file_bin: bytes, swarm_tag: int, swarm_pin: bool, swarm_encrypt: bool):
@@ -90,12 +91,12 @@ class Client(ClientBase):
         :return:
         """
         method = "GET"
-        path = "/bzz/%s?%s" % (ChunkAddress(reference), urlencode({"targets": targets}))
+        path = "/bzz/%s?%s" % (CollectionAddress(reference), urlencode({"targets": targets}))
         return self.call_request(method, path)
 
-    def get_connection_file(self, reference: str, file_path: str, targets: str):
+    def get_collection_file(self, reference: str, file_path: str, targets: str):
         method = "GET"
-        path = "/bzz/%s/%s?%s" % (reference, file_path, urlencode({"targets": targets}))
+        path = "/bzz/%s/%s?%s" % (CollectionAddress(reference), file_path, urlencode({"targets": targets}))
         return self.call_request(method, path)
 
     def get_tags(self, uid: str = None, offset: int = 0, limit: int = 0):
@@ -106,11 +107,11 @@ class Client(ClientBase):
             path = "/tags?%s" % urlencode({"offset": offset, "limit": limit})
         return self.call_request(method, path)
 
-    def create_tag(self, address: str):
+    def create_tag(self, peer_address: str):
         method = "POST"
         path = "/tags"
         data = {
-            "address": PeerAddress(address)
+            "address": PeerAddress(peer_address)
         }
         headers = Headers()
         headers['content-type'] = ContentType.JSON
@@ -121,17 +122,111 @@ class Client(ClientBase):
         path = "/tags/%s" % uid
         return self.call_request(method, path)
 
-    def update_tag(self, uid: int, address: str):
+    def update_tag(self, uid: int, peer_address: str):
         method = "PATCH"
         path = "/tags/%s" % uid
         data = {
-            "address": PeerAddress(address)
+            "address": PeerAddress(peer_address)
         }
         headers = Headers()
         headers['content-type'] = ContentType.JSON
         return self.call_request(method, path, headers=headers, json=data)
 
+    def create_pin_chunk(self, chunk_address: str):
+        method = "POST"
+        path = "/pin/chunks/%s" % ChunkAddress(chunk_address)
+        return self.call_request(method, path)
 
+    def get_pin_chunk(self, chunk_address: str = None, offset: int = 0, limit: int = 0):
+        method = "GET"
+        if chunk_address is None:
+            path = "/pin/chunks?%s" % urlencode({"offset": offset, "limit": limit})
+        else:
+            path = "/pin/chunks/%s" % ChunkAddress(chunk_address)
+        return self.call_request(method, path)
 
+    def update_pin_chunk(self, chunk_address: str):
+        method = "PUT"
+        path = "/pin/chunks/%s" % ChunkAddress(chunk_address)
+        return self.call_request(method, path)
 
+    def delete_pin_chunk(self, chunk_address: str):
+        method = "DELETE"
+        path = "/pin/chunks/%s" % ChunkAddress(chunk_address)
+        return self.call_request(method, path)
 
+    def create_pin_bytes(self, bytes_address: str):
+        method = "POST"
+        path = "/pin/bytes/%s" % BytesAddress(bytes_address)
+        return self.call_request(method, path)
+
+    def delete_pin_bytes(self, bytes_address: str):
+        method = "DELETE"
+        path = "/pin/bytes/%s" % BytesAddress(bytes_address)
+        return self.call_request(method, path)
+
+    def create_pin_files(self, file_address: str):
+        method = "POST"
+        path = "/pin/files/%s" % FileAddress(file_address)
+        return self.call_request(method, path)
+
+    def delete_pin_files(self, file_address: str):
+        method = "POST"
+        path = "/pin/files/%s" % FileAddress(file_address)
+        return self.call_request(method, path)
+
+    def create_pin_collection(self, collection_address: str):
+        method = "POST"
+        path = "/pin/bzz/%s" % CollectionAddress(collection_address)
+        return self.call_request(method, path)
+
+    def delete_pin_collection(self, collection_address: str):
+        method = "POST"
+        path = "/pin/bzz/%s" % CollectionAddress(collection_address)
+        return self.call_request(method, path)
+
+    def send_pss(self, topic: str, targets: str):
+        method = "POST"
+        path = "/pss/send/{topic}/{targets}".format(topic=topic, targets=targets)
+        return self.call_request(method, path)
+
+    def subscribe_pss(self, topic: str):
+        method = "GET"
+        path = "/pss/subscribe/{topic}".format(topic=topic)
+        return self.call_request(method, path)
+
+    def create_single_owner_chunk(self, owner: str, _id: str, sig: str):
+        method = "POST"
+        path = "/soc/{owner}/{id}?{query}".format(
+            owner=OwnerAddress(owner),
+            id=IdAddress(_id),
+            query=urlencode({"sig": sig})
+        )
+        return self.call_request(method, path)
+
+    def create_feed(self, owner: str, topic: str, swarm_pin: bool, _type: str = "sequence"):
+        method = "POST"
+        if _type not in ["sequence", "epoch"]:
+            _type = "sequence"
+        path = "/feeds/{owner}/{topic}?{query}".format(
+            owner=OwnerAddress(owner),
+            topic=IdAddress(topic),
+            query=urlencode({"type": _type})
+        )
+        headers = Headers({
+            "swarm-pin": swarm_pin
+        })
+        return self.call_request(method, path, headers=headers)
+
+    def get_feed(self, owner: str, topic: str, at: int = None, _type: str = "sequence"):
+        method = "GET"
+        if _type not in ["sequence", "epoch"]:
+            _type = "sequence"
+        if at is None:
+            at = int(time())
+        path = "/feeds/{owner}/{topic}?{query}".format(
+            owner=OwnerAddress(owner),
+            topic=IdAddress(topic),
+            query=urlencode({"type": _type, "at": at})
+        )
+        return self.call_request(method, path)

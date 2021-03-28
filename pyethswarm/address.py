@@ -40,3 +40,23 @@ class ContentAddress(Address):
 
 class ChunkAddress(ContentAddress):
     pass
+
+
+class BytesAddress(Address):
+    pass
+
+
+class FileAddress(Address):
+    pass
+
+
+class CollectionAddress(Address):
+    pass
+
+
+class IdAddress(Address):
+    regs = [re.compile(r"^([A-Fa-f0-9]+)$")]
+
+
+class OwnerAddress(Address):
+    regs = [re.compile(r"^[A-Fa-f0-9]{40}$")]
