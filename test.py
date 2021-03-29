@@ -74,8 +74,11 @@ p('59所有未兑现的支票')
 pprint(dc59.list_all_uncashed())
 
 
-# print('兑现所有支票，金额>1000')
-# print(dc.cashout())
+print('52兑现所有支票，金额>1000')
+print(dc52.cashout())
+
+print('59兑现所有支票，金额>1000')
+print(dc59.cashout())
 
 # print('查看支票余额')
 # print(dc.get_chequebook_balance())
