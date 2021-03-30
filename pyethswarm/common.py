@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 # encoding: utf-8
 import requests
-from json import loads, JSONDecodeError
+from json import loads, JSONDecodeError, dumps
+from base64 import b64encode
 
 
 class ApiError(Exception):
@@ -22,6 +23,16 @@ class RetType(object):
         self.code = code
         self.data = data
         self.msg = msg
+
+    def __repr__(self):
+        return dumps({
+            "code": self.code,
+            "msg": self.msg,
+            "data": self.data
+        })
+
+    def __str__(self):
+        return self.__repr__()
 
 
 class ContentType(object):
@@ -52,19 +63,21 @@ class ClientBase(object):
     def version(self):
         return self.__version
 
-    def _request(self,
-                 method,
-                 path,
-                 data: dict = None,
-                 json: dict = None,
-                 headers: Headers = None,
-                 timeout: int = 30,
-                 **kwargs
-                 ) -> RetType:
+    def call_request(self,
+                     method,
+                     path,
+                     data=None,
+                     json: dict = None,
+                     headers: Headers = None,
+                     timeout: int = 30,
+                     stream: bool = False,
+                     **kwargs
+                     ) -> RetType:
         url = self.url + path
         if headers is None:
             headers = Headers()
         req = None
+        kwargs.update({"stream": stream})
         try:
             if json:
                 req = requests.request(method, url, json=json, timeout=timeout, headers=headers, **kwargs)
@@ -72,26 +85,39 @@ class ClientBase(object):
                 req = requests.request(method, url, data=data, timeout=timeout, headers=headers, **kwargs)
         except Exception as e:
             return RetType(500, {}, str(e))
+        print("[DEBUG HEADERS] %s" % req.headers)
         ret = RetType(req.status_code, {}, '')
         if req.status_code != requests.codes.ok:
-            ret.msg = req.text
+
             try:
-                ret.data = loads(ret.msg)
+                ret.data = loads(req.text)
             except JSONDecodeError:
                 pass
+            if type(ret.data) is dict and 'message' in ret.data:
+                ret.msg = ret.data['message']
+            else:
+                ret.msg = req.text
             return ret
 
-        ret.data = req.json()
+        if stream:
+            ret.data = {
+                "headers": req.headers,
+                "raw": b64encode(req.raw.read()).decode()
+            }
+            # ret.data = req.raw.read()
+            # print(ret.data)
+        else:
+            ret.data = req.json()
         ret.msg = 'ok'
 
         return ret
 
-    def call_request(self, method, path, **kwargs):
-        ret = self._request(method, path, **kwargs)
-        if ret.code != RetType.OK:
-            err = ApiError("DEBUG_API", method, path, ret.code, ret.msg)
-            if self.is_raise:
-                raise err
-            else:
-                print(err)
-        return ret.data
+    # def call_request(self, method, path, **kwargs):
+    #     ret = self._request(method, path, **kwargs)
+    #     if ret.code != RetType.OK:
+    #         err = ApiError("DEBUG_API", method, path, ret.code, ret.msg)
+    #         if self.is_raise:
+    #             raise err
+    #         # else:
+    #         #    print(err)
+    #     return ret

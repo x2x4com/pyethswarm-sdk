@@ -4,6 +4,7 @@ from urllib.parse import urlencode
 from .common import ClientBase, Headers, ContentType
 from .address import *
 from time import time
+import re
 
 
 class Client(ClientBase):
@@ -46,21 +47,67 @@ class Client(ClientBase):
         return self.call_request(method, path, headers=headers, data=string_bin)
 
     def get_files(self, reference: str):
+        """
+        Get file via reference(Content Address)
+
+        Args:
+            reference: Content Address
+
+        Returns:
+            existed: return dict({"name": str, "content_type": str, "msg": str, "data": base64encode(byte) })
+            not existed: RetType object
+
+        """
         method = "GET"
         path = "/files/%s" % ContentAddress(reference)
-        return self.call_request(method, path)
+        ret = self.call_request(method, path, stream=True)
+        if ret.code != 200:
+            return ret
+        _ret_data = ret.data
+        _reg = re.compile(r'filename="(.*)"').findall(_ret_data['headers']['Content-Disposition'])
+        msg = "OK"
+        if len(_reg) > 0:
+            file_name = _reg[0]
+        else:
+            file_name = _ret_data['headers']['Content-Disposition']
+            msg = "Can not find file name, use Content-Disposition instead"
+        return {
+            "name": file_name,
+            "content_type": _ret_data['headers']['Content-Type'],
+            "msg": msg,
+            "data": _ret_data['raw']
+        }
 
-    def upload_files(self, file_name: str, file_bin: bytes, swarm_tag: int, swarm_pin: bool, swarm_encrypt: bool):
+    def upload_files(self,
+                     file_name: str,
+                     content_type: str,
+                     file_bin: bytes,
+                     swarm_tag: int = None,
+                     swarm_pin: bool = False,
+                     swarm_encrypt: bool = False):
         method = "POST"
         path = "/files?%s" % urlencode({"name": file_name})
-        headers = Headers({
-            "swarm-tag": swarm_tag,
-            "swarm-pin": swarm_pin,
-            "swarm-encrypt": swarm_encrypt
-        })
+        if swarm_tag is not None:
+            headers = Headers({
+                "swarm-tag": swarm_tag,
+                "swarm-pin": swarm_pin.__str__().lower(),
+                "swarm-encrypt": swarm_encrypt.__str__().lower()
+            })
+        else:
+            headers = Headers({
+                "swarm-pin": swarm_pin.__str__().lower(),
+                "swarm-encrypt": swarm_encrypt.__str__().lower()
+            })
         # headers['content-type'] = "multipart/form-data"
-        headers['content-type'] = ContentType.OCTETSTEAM
-        return self.call_request(method, path, headers=headers, data=file_bin)
+        headers['content-type'] = content_type
+        # print(headers)
+        ret = self.call_request(method, path, headers=headers, data=file_bin)
+        if ret.code != 200:
+            return ret
+        return {
+            "name": file_name,
+            **ret.data
+        }
 
     def upload_collection(self,
                           collection_bin: bytes,
