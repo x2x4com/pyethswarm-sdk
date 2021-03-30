@@ -169,7 +169,7 @@ class Client(ClientBase):
         Returns: int
 
         """
-        pd = self.get_chequebook_cheque(peer)
+        pd = self.get_chequebook_cheque(peer).data
         diff = 0
         # print("pd: %s" % pd)
         if pd is not None and 'lastreceived' in pd and pd['lastreceived'] is not None and 'payout' in pd[
@@ -178,7 +178,7 @@ class Client(ClientBase):
             if cumulative_payout is None or cumulative_payout == 0:
                 # print("cumulative_payout: %s" % cumulative_payout)
                 return diff
-            _past_cashed_payout = self.get_chequebook_cashout(peer)
+            _past_cashed_payout = self.get_chequebook_cashout(peer).data
             # print("_past_cashed_payout: %s" % _past_cashed_payout)
             if 'cumulativePayout' in _past_cashed_payout:
                 cashed_payout = _past_cashed_payout['cumulativePayout']
@@ -209,7 +209,7 @@ class Client(ClientBase):
         Returns: list(peer)
 
         """
-        data = self.get_chequebook_cheque()
+        data = self.get_chequebook_cheque().data
         return [pp['peer'] for pp in data['lastcheques']]
 
     def cashout(self, peer: str=None, min_amount: int=1000):
@@ -232,7 +232,7 @@ class Client(ClientBase):
         for _peer in peers:
             diff = self.uncashed_amount(_peer)
             if diff > 0 and diff > min_amount:
-                _cash_out = self.do_chequebook_cashout(_peer)
+                _cash_out = self.do_chequebook_cashout(_peer).data
                 cashed_list.append((_peer, _cash_out))
 
         return cashed_list
