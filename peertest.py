@@ -47,17 +47,17 @@ def pp(m):
 
 
 def negative_balances_peers(dc: debug_api.Client):
-    _neative_peers = [x for x in dc.get_balances()['balances'] if x['balance'] < 0]
-    _all_peers = [_p['address'] for _p in dc.get_peers()['peers']]
+    _neative_peers = [x for x in dc.get_balances().data['balances'] if x['balance'] < 0]
+    _all_peers = [_p['address'] for _p in dc.get_peers().data['peers']]
     _connected_negaive_peers = [y for y in _neative_peers if y['peer'] in _all_peers]
     return _connected_negaive_peers
 
 
 def connected_peers_balances(dc: debug_api.Client):
-    _all_peers = [_p['address'] for _p in dc.get_peers()['peers']]
+    _all_peers = [_p['address'] for _p in dc.get_peers().data['peers']]
     _connected_peers_balances = list()
     for _p in _all_peers:
-        balance = dc.get_balances(_p)
+        balance = dc.get_balances(_p).data
         if 'balance' in balance:
             _connected_peers_balances.append(balance)
         else:
@@ -71,7 +71,7 @@ def disconnect_peers(dc: debug_api.Client, peers):
 
 
 # p('52余额为负数的节点已经连接的节点')
-_nbp_52 = [x for x in dc52.get_balances()['balances'] if x['balance'] < 0]
+_nbp_52 = [x for x in dc52.get_balances().data['balances'] if x['balance'] < 0]
 # pprint(_nbp_52)
 
 p('52节点余额')
@@ -79,7 +79,7 @@ pp(connected_peers_balances(dc52))
 
 
 # p('59余额为负数的节点已经连接的节点')
-_nbp_59 = [x for x in dc59.get_balances()['balances'] if x['balance'] < 0]
+_nbp_59 = [x for x in dc59.get_balances().data['balances'] if x['balance'] < 0]
 # pprint(_nbp_59)
 
 
@@ -99,12 +99,12 @@ if is_clean:
 
 
 p('52连接信息')
-print("Total peers: %s" % len(dc52.get_peers()['peers']))
+print("Total peers: %s" % len(dc52.get_peers().data['peers']))
 print("Negative peers: %s" % len(_nbp_52))
 
 
 p('59连接信息')
-print("Total peers: %s" % len(dc59.get_peers()['peers']))
+print("Total peers: %s" % len(dc59.get_peers().data['peers']))
 print("Negative peers: %s" % len(_nbp_59))
 
 
