@@ -34,6 +34,13 @@ class RetType(object):
     def __str__(self):
         return self.__repr__()
 
+    def to_dict(self):
+        return {
+            "code": self.code,
+            "data": self.data,
+            "msg": self.msg
+        }
+
 
 class ContentType(object):
     JSON = 'application/json'
@@ -85,7 +92,7 @@ class ClientBase(object):
                 req = requests.request(method, url, data=data, timeout=timeout, headers=headers, **kwargs)
         except Exception as e:
             return RetType(500, {}, str(e))
-        print("[DEBUG HEADERS] %s" % req.headers)
+        # print("[DEBUG HEADERS] %s" % req.headers)
         ret = RetType(req.status_code, {}, '')
         if req.status_code != requests.codes.ok:
 

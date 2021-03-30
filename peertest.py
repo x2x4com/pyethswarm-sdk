@@ -67,7 +67,7 @@ def connected_peers_balances(dc: debug_api.Client):
 
 def disconnect_peers(dc: debug_api.Client, peers):
     for _p in peers:
-        pp(dc.remove_peer(_p))
+        pp(dc.remove_peer(_p).to_dict())
 
 
 # p('52余额为负数的节点已经连接的节点')
