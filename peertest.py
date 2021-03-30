@@ -42,8 +42,10 @@ def p(m):
     print("-----%s-----" % m)
 
 
-def pp(m):
-    pprint(m, sort_dicts=False)
+pp = pprint
+
+# def pp(m):
+#     pprint(m, sort_dicts=False)
 
 
 def negative_balances_peers(dc: debug_api.Client):
