@@ -92,11 +92,11 @@ print(dc59.cashout())
 # print(dc.get_chequebook_balance())
 
 p('52连接状态')
-print("Total peers: %s" % len(dc52.get_peers()['peers']))
-print("Negative peers: %s" % len([x for x in dc52.get_balances()['balances'] if x['balance'] <= 0]))
+print("Total peers: %s" % len(dc52.get_peers().data['peers']))
+print("Negative peers: %s" % len([x for x in dc52.get_balances().data['balances'] if x['balance'] <= 0]))
 
 p('59连接状态')
-print("Total peers: %s" % len(dc59.get_peers()['peers']))
-print("Negative peers: %s" % len([x for x in dc59.get_balances()['balances'] if x['balance'] <= 0]))
+print("Total peers: %s" % len(dc59.get_peers().data['peers']))
+print("Negative peers: %s" % len([x for x in dc59.get_balances().data['balances'] if x['balance'] <= 0]))
 
 
