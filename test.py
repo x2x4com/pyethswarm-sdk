@@ -45,9 +45,8 @@ def p(m):
 # pprint(dc.get_peers())
 # print("remove_peer")
 # print(dc.remove_peer('ffe76aff04aaad1aaacf952210691a005167185b794b225d070f18ad8cbba6cf'))
-# # 用法好像不对，要再测试一下
-# # print(dc.connect_peer('ffe76aff04aaad1aaacf952210691a005167185b794b225d070f18ad8cbba6cf'))
-# # print(dc.get_topology())
+# print(dc.connect_peer('/ip4/127.0.0.1/tcp/1634/p2p/16Uiu2HAmUdCRWmyQCEahHthy7G4VsbBQ6dY9Hnk79337NfadKJEs'))
+# print(dc.get_topology())
 # p("get_welcome_message")
 # print(dc.get_welcome_message())
 # print(dc.set_welcome_message("x2x4-%s" % int(time())))

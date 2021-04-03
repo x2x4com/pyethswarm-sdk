@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # encoding: utf-8
-from urllib.parse import urlencode
+from urllib.parse import urlencode, quote
 from .common import ClientBase, RetType, ApiError, Headers, ContentType
-from .address import PeerAddress, ChunkAddress
+from .address import PeerAddress, ChunkAddress, MultiAddr
 
 
 class Client(ClientBase):
@@ -32,9 +32,11 @@ class Client(ClientBase):
         path = "/peers/%s" % PeerAddress(peer_address)
         return self.call_request(method, path)
 
-    def connect_peer(self, peer_address):
+    def connect_peer(self, multiaddr):
+        # https://docs.libp2p.io/reference/glossary/#multiaddr
+        
         method = "POST"
-        path = "/connect/%s" % PeerAddress(peer_address)
+        path = "/connect/%s" % quote(str(MultiAddr(multiaddr)))
         return self.call_request(method, path)
 
     def get_topology(self):
