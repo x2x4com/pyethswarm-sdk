@@ -26,6 +26,10 @@ class Address(object):
         return self.address
 
 
+class MultiAddress(Address):
+    regs = [re.compile(r'.*')]
+
+
 class PeerAddress(Address):
     pass
 
@@ -60,3 +64,7 @@ class IdAddress(Address):
 
 class OwnerAddress(Address):
     regs = [re.compile(r"^[A-Fa-f0-9]{40}$")]
+
+
+class TxHash(Address):
+    pass

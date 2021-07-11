@@ -2,11 +2,12 @@
 # encoding: utf-8
 from urllib.parse import urlencode
 from .common import ClientBase, RetType, ApiError, Headers, ContentType
-from .address import PeerAddress, ChunkAddress
+from .address import PeerAddress, ChunkAddress, MultiAddress, TxHash
+from typing import List, Union, Dict
 
 
 class Client(ClientBase):
-    __version = "0.5.2"
+    __version = "1.0.0"
 
     def __init__(self, url: str = "http://localhost:1635", is_raise=True):
         super().__init__(url, self.__version)
@@ -27,14 +28,19 @@ class Client(ClientBase):
         path = "/peers"
         return self.call_request(method, path)
 
-    def remove_peer(self, peer_address):
+    def remove_peer(self, peer_address: PeerAddress):
         method = "DELETE"
-        path = "/peers/%s" % PeerAddress(peer_address)
+        path = "/peers/%s" % peer_address
         return self.call_request(method, path)
 
-    def connect_peer(self, peer_address):
+    def connect_peer(self, address: MultiAddress):
         method = "POST"
-        path = "/connect/%s" % PeerAddress(peer_address)
+        path = "/connect/%s" % address
+        return self.call_request(method, path)
+
+    def ping_peer(self, address: PeerAddress):
+        method = "POST"
+        path = "/pingpong/{peer_id}".format(peer_id=address)
         return self.call_request(method, path)
 
     def get_topology(self):
@@ -57,20 +63,20 @@ class Client(ClientBase):
         }
         return self.call_request(method, path, json=data, headers=headers)
 
-    def get_balances(self, address=None):
+    def get_balances(self, address: Union[PeerAddress, None]=None):
         if address is None:
             path = "/balances"
         else:
-            path = "/balances/%s" % PeerAddress(address)
+            path = "/balances/%s" % address
         method = "GET"
         return self.call_request(method, path)
 
-    def get_consumed(self, address=None):
+    def get_consumed(self, address: Union[PeerAddress, None]=None):
         method = "GET"
         if address is None:
             path = "/consumed"
         else:
-            path = "/consumed/%s" % PeerAddress(address)
+            path = "/consumed/%s" % address
         return self.call_request(method, path)
 
     def get_chequebook_address(self):
@@ -83,57 +89,78 @@ class Client(ClientBase):
         path = "/chequebook/balance"
         return self.call_request(method, path)
 
-    def get_chequebook_cashout(self, peer_id):
+    def get_chequebook_cashout(self, peer_id: PeerAddress):
         method = "GET"
-        path = "/chequebook/cashout/%s" % PeerAddress(peer_id)
+        path = "/chequebook/cashout/%s" % peer_id
         return self.call_request(method, path)
 
-    def do_chequebook_cashout(self, peer_id, gas_price_gwei=1):
+    def do_chequebook_cashout(self, peer_id: PeerAddress, gas_price_gwei: int=1):
         method = "POST"
-        path = "/chequebook/cashout/%s" % PeerAddress(peer_id)
-        # 官方的cashout脚本并没有使用这个头，需要测试确认
+        path = "/chequebook/cashout/%s" % peer_id
+        # todo 需要测试确认
         headers = Headers({
             "gas-price": gas_price_gwei * 10**9,
             "gas-limit": 6000000
         })
-        return self.call_request(method, path)
+        return self.call_request(method, path, headers=headers)
 
-    def get_chequebook_cheque(self, peer_id=None):
+    def get_chequebook_cheque(self, peer_id: Union[PeerAddress, None]=None):
         method = "GET"
         if peer_id is None:
             path = "/chequebook/cheque"
         else:
-            path = "/chequebook/cheque/%s" % PeerAddress(peer_id)
+            path = "/chequebook/cheque/%s" % peer_id
         return self.call_request(method, path)
 
-    def do_chequebook_deposit(self, amount: int):
+    def do_chequebook_deposit(self, amount: int, gas_price_gwei: int=1):
         method = "POST"
         query_params = urlencode({
             "amount": amount
         })
+        headers = Headers({
+            "gas-price": gas_price_gwei * 10 ** 9,
+        })
         path = "/chequebook/deposit?%s" % query_params
-        return self.call_request(method, path)
+        return self.call_request(method, path, headers=headers)
 
-    def do_chequebook_withdraw(self, amount: int):
+    def do_chequebook_withdraw(self, amount: int, gas_price_gwei: int=1):
         method = "POST"
-        available_balance = self.get_chequebook_balance()['availableBalance']
-        if amount >= available_balance:
-            print("Insufficient balance")
+        # available_balance = self.get_chequebook_balance()['availableBalance']
+        available_balance = self.get_chequebook_balance().to_dict().get('data').get('availableBalance')
+        if available_balance is None or amount >= available_balance:
+            print("Insufficient balance, or can not get balance")
             return
         query_params = urlencode({
             "amount": amount
         })
+        headers = Headers({
+            "gas-price": gas_price_gwei * 10 ** 9,
+        })
         path = "/chequebook/withdraw?%s" % query_params
-        return self.call_request(method, path)
+        return self.call_request(method, path, headers=headers)
 
-    def get_chunks(self, chunk_address):
+    def get_chunks(self, chunk_address: ChunkAddress):
+        # Check if chunk at address exists locally
         method = "GET"
-        path = "/chunks/%s" % ChunkAddress(chunk_address)
+        path = "/chunks/%s" % chunk_address
         return self.call_request(method, path)
 
-    def delete_chunks(self, chunk_address):
+    def delete_chunks(self, chunk_address: ChunkAddress):
+        # Delete a chunk from local storage
         method = "DELETE"
-        path = "/chunks/%s" % ChunkAddress(chunk_address)
+        path = "/chunks/%s" % chunk_address
+        return self.call_request(method, path)
+
+    # status
+
+    def get_reserve_state(self):
+        method = "GET"
+        path = '/reservestate'
+        return self.call_request(method, path)
+
+    def get_chain_state(self):
+        method = "GET"
+        path = '/chainstate'
         return self.call_request(method, path)
 
     def get_health(self):
@@ -146,12 +173,17 @@ class Client(ClientBase):
         path = "/readiness"
         return self.call_request(method, path)
 
-    def get_settlements(self, peer_address=None):
+    def get_settlements(self, peer_address: Union[PeerAddress, None]=None):
         method = "GET"
         if peer_address is None:
             path = "/settlements"
         else:
-            path = "/settlements/%s" % PeerAddress(peer_address)
+            path = "/settlements/%s" % peer_address
+        return self.call_request(method, path)
+
+    def get_time_settlements(self):
+        method = "GET"
+        path = "/timesettlements"
         return self.call_request(method, path)
 
     def get_tags(self, uid: int):
@@ -159,6 +191,16 @@ class Client(ClientBase):
         path = "/tags/%s" % uid
         return self.call_request(method, path)
 
+    def get_transaction(self, tx_hash: Union[TxHash, None]=None):
+        method = "GET"
+        if tx_hash is None:
+            path = "/transaction"
+        else:
+            path = "/transaction/{tx_hash}".format(tx_hash=tx_hash)
+        return self.call_request(method, path)
+
+    # todo 先对比一下官方最新的cashout脚本
+    # todo 下面这些方法需要在1.0.0上面测试，
     def uncashed_amount(self, peer: PeerAddress) -> int:
         """
         count uncashed amount

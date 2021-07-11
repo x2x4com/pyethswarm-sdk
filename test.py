@@ -24,7 +24,7 @@ from time import sleep, time
 from pprint import pprint
 
 dc52 = debug_api.Client(url="http://192.168.1.52:1635", is_raise=False)
-dc59 = debug_api.Client(url="http://192.168.1.59:1635", is_raise=False)
+#dc59 = debug_api.Client(url="http://192.168.1.59:1635", is_raise=False)
 ac = api.Client(url="http://192.168.1.52:1633")
 
 
@@ -70,15 +70,15 @@ def p(m):
 p('52所有未兑现的支票')
 pprint(dc52.list_all_uncashed())
 
-p('59所有未兑现的支票')
-pprint(dc59.list_all_uncashed())
+#p('59所有未兑现的支票')
+#pprint(dc59.list_all_uncashed())
 
 
 print('52兑现所有支票，金额>1000')
 print(dc52.cashout())
 
-print('59兑现所有支票，金额>1000')
-print(dc59.cashout())
+#print('59兑现所有支票，金额>1000')
+#print(dc59.cashout())
 
 # print('查看支票余额')
 # print(dc.get_chequebook_balance())
@@ -95,8 +95,8 @@ p('52连接状态')
 print("Total peers: %s" % len(dc52.get_peers().data['peers']))
 print("Negative peers: %s" % len([x for x in dc52.get_balances().data['balances'] if x['balance'] <= 0]))
 
-p('59连接状态')
-print("Total peers: %s" % len(dc59.get_peers().data['peers']))
-print("Negative peers: %s" % len([x for x in dc59.get_balances().data['balances'] if x['balance'] <= 0]))
+#p('59连接状态')
+#print("Total peers: %s" % len(dc59.get_peers().data['peers']))
+#print("Negative peers: %s" % len([x for x in dc59.get_balances().data['balances'] if x['balance'] <= 0]))
 
 
