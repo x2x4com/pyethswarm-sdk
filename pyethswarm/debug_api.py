@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # encoding: utf-8
-from urllib.parse import urlencode
+from urllib.parse import urlencode, quote
 from .common import ClientBase, RetType, ApiError, Headers, ContentType
 from .address import PeerAddress, ChunkAddress, MultiAddress, TxHash
 from typing import List, Union, Dict
@@ -35,13 +35,12 @@ class Client(ClientBase):
 
     def connect_peer(self, address: MultiAddress):
         method = "POST"
-        path = "/connect/%s" % address
+        path = "/connect/%s" % quote(str(address))
         return self.call_request(method, path)
 
     def ping_peer(self, address: PeerAddress):
         method = "POST"
         path = "/pingpong/{peer_id}".format(peer_id=address)
-        return self.call_request(method, path)
 
     def get_topology(self):
         method = "GET"

@@ -48,14 +48,14 @@ pp = pprint
 #     pprint(m, sort_dicts=False)
 
 
-def negative_balances_peers(dc: debug_api.Client):
+def negative_balances_peers(dc: debug_api.Client) -> list:
     _neative_peers = [x for x in dc.get_balances().data['balances'] if x['balance'] < 0]
     _all_peers = [_p['address'] for _p in dc.get_peers().data['peers']]
     _connected_negaive_peers = [y for y in _neative_peers if y['peer'] in _all_peers]
     return _connected_negaive_peers
 
 
-def connected_peers_balances(dc: debug_api.Client):
+def connected_peers_balances(dc: debug_api.Client) -> list:
     _all_peers = [_p['address'] for _p in dc.get_peers().data['peers']]
     _connected_peers_balances = list()
     for _p in _all_peers:
@@ -67,7 +67,7 @@ def connected_peers_balances(dc: debug_api.Client):
     return _connected_peers_balances
 
 
-def disconnect_peers(dc: debug_api.Client, peers):
+def disconnect_peers(dc: debug_api.Client, peers) -> None:
     for _p in peers:
         pp(dc.remove_peer(_p).to_dict())
 
