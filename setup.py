@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setuptools.setup(
     name="pyethswarm",
-    version="0.0.3",
+    version="0.0.5",
     author="x2x4",
     author_email="x2x4com@gmail.com",
     description="A simple sdk for ethswarm",

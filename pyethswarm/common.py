@@ -25,11 +25,7 @@ class RetType(object):
         self.msg = msg
 
     def __repr__(self):
-        return dumps({
-            "code": self.code,
-            "msg": self.msg,
-            "data": self.data
-        })
+        return self.to_json()
 
     def __str__(self):
         return self.__repr__()
@@ -40,6 +36,9 @@ class RetType(object):
             "data": self.data,
             "msg": self.msg
         }
+
+    def to_json(self):
+        return dumps(self.to_dict())
 
 
 class ContentType(object):

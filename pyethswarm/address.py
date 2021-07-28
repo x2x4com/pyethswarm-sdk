@@ -88,3 +88,7 @@ class OwnerAddress(Address):
 
 class TxHash(Address):
     pass
+
+
+class StampId(Address):
+    regs = [re.compile(r"^[A-Fa-f0-9]{64}$")]

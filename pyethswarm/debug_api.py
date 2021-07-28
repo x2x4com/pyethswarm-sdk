@@ -41,6 +41,7 @@ class Client(ClientBase):
     def ping_peer(self, address: PeerAddress):
         method = "POST"
         path = "/pingpong/{peer_id}".format(peer_id=address)
+        return self.call_request(method, path)
 
     def get_topology(self):
         method = "GET"
